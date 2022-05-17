@@ -23,7 +23,15 @@ public:
 	double Eval(const Eigen::Vector3d& _x)
 	{
 		// TODO: implement the implicit sphere formula using the member variables m_center and m_radius
-		return 0.0;
+		// Implicit sphere formula -> f(x,y,z) = x^2 + y^2 + z^2 - R^2
+		// Since our center is not zero centered, implicit formula is -> f(x,y,z)= (x-c1)^2 + (y-c2)^2 + (z-c3)^2 - R^2
+		Eigen::Vector3d centrelized_coordiantes = _x - m_center;
+		double f{0};
+		for (auto i : centrelized_coordiantes)
+			f += i * i;
+		f = f - m_radius * m_radius;
+			
+		return f;
 	}
 
 private:
@@ -41,8 +49,18 @@ public:
 
 	double Eval(const Eigen::Vector3d& _x)
 	{
+
 		// TODO: implement the implicit torus formula using the  variables m_center, m_radius (radius of the ring) and the radius m_a (small radius)
-		return 0.0;
+		Eigen::Vector3d centrelized_coordiantes = _x - m_center;
+		double f{0};
+		double x_square{ centrelized_coordiantes[0] * centrelized_coordiantes[0]};
+		double y_square{ centrelized_coordiantes[1] * centrelized_coordiantes[1] };
+		double z_square{ centrelized_coordiantes[2] * centrelized_coordiantes[2] };
+		double f1{x_square + y_square + z_square + m_radius*m_radius - m_a*m_a};
+		double f2{ 4 * m_radius * m_radius * (x_square + y_square) };
+		f = f1*f1 - f2;
+		
+		return f;
 	}
 
 private:

@@ -340,8 +340,11 @@ Vector3d VertexInterp(double isolevel, const Vector3d& p1, const Vector3d& p2, d
 	//  /
 	// x
 	// f(p1) = valp1
+	//Find the return point M by interpolating P1 and P2 M = P2 * p + P1 * (1 - p)
 
-	return (p1+p2)/2;
+	// do kind of weighted avarage
+
+	return p1 + std::abs(valp1) * (-p1 + p2) / (std::abs(valp1) + std::abs(valp2));;
 }
 
 /*
