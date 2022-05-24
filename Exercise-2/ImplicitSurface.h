@@ -88,7 +88,9 @@ public:
 		Eigen::Vector3f n = m_pointcloud.GetNormals()[idx];
 
 		// TODO: implement the evaluation using Hoppe's method (see lecture slides)
-		return 0.0;
+
+		// Hoppe method = f(x) = (x-p).n
+		return (x - p).dot(n);
 	}
 
 private:
@@ -131,7 +133,7 @@ public:
 			Eigen::Vector3f ptF = m_pointcloud.GetPoints()[i];
 			Eigen::Vector3f nF = m_pointcloud.GetNormals()[i];
 			const Vector3d pt(ptF[0], ptF[1], ptF[2]);
-			const Vector3d n(nF[0], nF[1], nF[2]);
+			const Vector3d n(nF[0], nF[1], nF[2]); 
 
 			m_funcSamp.insertSample(pt, 0);
 			m_funcSamp.insertSample(pt + n*eps, eps);
@@ -248,11 +250,12 @@ public:
 		// on surface points (-> center points of the RBFs)
 		for (unsigned int i = 0; i < m_pointcloud.GetPoints().size(); i++)
 		{
-			Eigen::Vector3f ptF = m_pointcloud.GetPoints()[i];
-			Eigen::Vector3f nF = m_pointcloud.GetNormals()[i];
-			const Vector3d pt(ptF[0], ptF[1], ptF[2]);
-			const Vector3d n(nF[0], nF[1], nF[2]);
 
+			Eigen::Vector3f ptF = m_pointcloud.GetPoints()[i]; // get the point p[i]
+			Eigen::Vector3f nF = m_pointcloud.GetNormals()[i]; // get the normal of the point p[i]
+			const Vector3d pt(ptF[0], ptF[1], ptF[2]); // create an eigen vector for the current point
+			const Vector3d n(nF[0], nF[1], nF[2]); // create an eigen vector for the current normal
+	
 			m_funcSamp.insertSample(pt, 0); // on surface point => distance = 0
 		}
 
@@ -288,6 +291,18 @@ public:
 		// hint: Eigen provides a norm() function to compute the l2-norm of a vector (e.g. see macro phi(i,j))
 		double result = 0.0;
 
+		for (int i = 0; i < m_numCenters; i++) {
+			double diff_norm = (m_funcSamp.m_pos[i] - _x).norm();
+			double evalbasis = diff_norm * diff_norm * diff_norm;
+			result += m_coefficents[i] * evalbasis;
+
+		}
+		// b*x
+		result += m_coefficents[m_numCenters] * _x[0];
+		result += m_coefficents[m_numCenters + 1] * _x[1];
+		result += m_coefficents[m_numCenters + 2] * _x[2];
+		// d
+		result += m_coefficents[m_numCenters + 3];
 
 		return result;
 	}
@@ -314,7 +329,17 @@ private:
 		// you can access matrix elements using for example A(i,j) for the i-th row and j-th column
 		// similar you access the elements of the vector b, e.g. b(i) for the i-th element
 
-
+		for (int row = 0; row < 2 * m_numCenters; row++)
+		{
+			for (int col = 0; col < m_numCenters; col++)
+			{
+				A(row, col) = phi(row, col);
+			}
+			A.block<1, 3>(row, m_numCenters) = m_funcSamp.m_pos[row];
+			A(row, m_numCenters + 3) = 1;
+			// fill b casually.
+			b(row) = m_funcSamp.m_val[row];
+		}
 
 
 		// build the system matrix and the right hand side of the normal equation
