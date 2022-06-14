@@ -1,1 +1,1 @@
-# 3D-Scanning-Motion-Capture
+# 3D-Scanning-Motion-Capture Exercise Solutions
